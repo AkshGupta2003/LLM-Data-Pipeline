@@ -4,7 +4,7 @@ The data-loading and embedding stages of a GPT-style language model, built from
 scratch to understand how they actually work.
 
 Tokenization is handled by the companion repo
-([BPT-Tokenizer](https://github.com/AkshGupta2003/BPT-Tokenizer)). This repo covers
+([BPE-Tokenizer](https://github.com/AkshGupta2003/BPE-Tokenizer)). This repo covers
 everything between *"a flat list of token ids"* and *"the tensor the first
 transformer block sees."*
 
@@ -84,14 +84,14 @@ Requires the companion tokenizer repo as a sibling directory:
 
 ```bash
 git clone git@github.com:AkshGupta2003/LLM-Data-Pipeline.git
-git clone git@github.com:AkshGupta2003/BPT-Tokenizer.git
+git clone git@github.com:AkshGupta2003/BPE-Tokenizer.git
 cd LLM-Data-Pipeline
 ```
 
 Or point at a clone anywhere:
 
 ```bash
-export BPE_TOKENIZER_PATH=/path/to/BPT-Tokenizer
+export BPE_TOKENIZER_PATH=/path/to/BPE-Tokenizer
 ```
 
 Dependencies:
