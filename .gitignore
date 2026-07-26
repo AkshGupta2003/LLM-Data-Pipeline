@@ -1,0 +1,24 @@
+# Jupyter
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# loguru output from the tokenizer
+log/
+
+# Reference notebooks from Sebastian Raschka's "Build a Large Language Model
+# (From Scratch)". Kept locally for reference; not redistributed here.
+# Get them from https://github.com/rasbt/LLMs-from-scratch
+data_loader_and_embeddings.ipynb
+working with text data.ipynb
+
+# OS
+.DS_Store
+Thumbs.db
