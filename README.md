@@ -31,10 +31,14 @@ corpus that fits on a laptop CPU.
 |---|---|---|
 | 0 | train the BPE tokenizer on `the-verdict.txt`, vocab 1000 | done → `verdict_tokenizer.json` |
 | 1 | chunking: token stream → `(input, target)` pairs | done — 53 chunks |
-| 2 | `Dataset` + `DataLoader` (batching) | pending |
-| 3 | token embedding table (`We`) | done |
-| 4 | position table (`Wp`) + add + dropout → `h0` | pending |
-| 5 | wrap as a module the transformer plugs into | pending |
+| 2 | `Dataset` + `DataLoader` (batching) | done — 13 batches of 4 |
+| 3 | token embedding table (`We`) | done — 1001 × 128 |
+| 4 | position table (`Wp`) + add + dropout → `h0` | done — 256 × 128 |
+| 5 | wrap as a module the transformer plugs into | done — `GPTEmbedding` |
+
+The pipeline is complete: `GPTEmbedding(vocab_size, context, emb_dim)` takes a
+`[B, T]` batch of token ids and returns the `[B, T, emb_dim]` tensor `h0` that the
+first transformer block consumes.
 
 All of it lives in [`data_pipeline.ipynb`](data_pipeline.ipynb), built up cell by
 cell with the verification checks kept in place.
@@ -44,14 +48,18 @@ cell with the verification checks kept in place.
 Corpus is *The Verdict* by Edith Wharton (1908, public domain), ~20 KB.
 
 ```
-characters        20,479
-tokens             6,998        (2.93 chars/token)
-vocab_size         1,001        256 bytes + 744 merges + 1 special
-context              256
-stride               128        deliberate departure from the papers — see below
-chunks                53
-predictions       13,568        53 chunks x 256 slots
-embedding table  1001 x 128     128,128 parameters
+characters           20,479
+tokens                6,998     (2.93 chars/token)
+vocab_size            1,001     256 bytes + 744 merges + 1 special
+context                 256
+stride                  128     deliberate departure from the papers — see below
+chunks                   53
+batches                  13     at batch_size 4; 1 chunk dropped by drop_last
+predictions          13,568     53 chunks x 256 slots
+token table      1001 x 128     128,128 parameters
+position table    256 x 128      32,768 parameters
+h0 total                        160,896 parameters
+untrained loss       6.9083     vs ln(1001) = 6.9088
 ```
 
 ## Design notes
@@ -77,6 +85,21 @@ token.
 **Position embeddings are unaffected by stride.** Every chunk is a full `context`
 tokens long, so every slot `0..255` appears in all 53 chunks — no row of `Wp` is
 starved relative to another.
+
+**Weight tying.** GPT-1 predicts with `softmax(h_n · We^T)` — the same token table
+from the input, transposed. So `We` is half the *output* layer too, not merely an
+input detail. The notebook demonstrates this against `h0` directly and checks that
+the untrained cross-entropy lands on `ln(vocab_size)`: an untrained model should be
+exactly as good as guessing uniformly. Much lower would mean targets are leaking
+into inputs; much higher would mean the init or the shapes are wrong.
+
+**Init std 0.02.** `nn.Embedding` defaults to N(0, 1), but GPT-2 uses N(0, 0.02) and
+`GPTEmbedding` overrides it accordingly. At N(0, 1) the embedding values would dwarf
+everything downstream.
+
+**Adding, not concatenating.** Both tables are `emb_dim` wide, so `We + Wp` stays
+`emb_dim` wide. Concatenating would double the width at every subsequent layer for no
+benefit — the model learns to keep the two kinds of information separable itself.
 
 ## Setup
 
