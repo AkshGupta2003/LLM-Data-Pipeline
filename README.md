@@ -40,6 +40,8 @@ The pipeline is complete: `GPTEmbedding(vocab_size, context, emb_dim)` takes a
 `[B, T]` batch of token ids and returns the `[B, T, emb_dim]` tensor `h0` that the
 first transformer block consumes.
 
+See [`SHAPES.md`](SHAPES.md) for every tensor shape between raw text and `h0`.
+
 All of it lives in [`data_pipeline.ipynb`](data_pipeline.ipynb), built up cell by
 cell with the verification checks kept in place.
 
